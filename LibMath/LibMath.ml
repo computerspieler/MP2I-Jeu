@@ -1,5 +1,5 @@
 module Vec2 = struct
-        include Vec2
+	include Vec2
 end
 
 (* Surchage d'operateurs *)

@@ -1,3 +1,7 @@
 (executable
  (name Jeu)
- (libraries LibMath))
+ (libraries unix graphics LibRender LibMath)
+ )
+(env
+ (dev
+   (flags (:standard -warn-error -A))))
