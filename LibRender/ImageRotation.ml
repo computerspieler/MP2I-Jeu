@@ -48,8 +48,8 @@ let getRotatedImage input angle =
 	done;
 	{
 		image = make_image new_color_matrix;
-		width = width;
-		height = height;
+		width = new_size;
+		height = new_size;
 	}
 
 let rec getRotatedImages input angles =

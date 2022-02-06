@@ -15,6 +15,10 @@ let _ =
 	open_graph  window_param;
 	set_window_title "Jeu";
 	
+	(* On active le double buffering *)
+	display_mode false;
+	remember_mode true;
+
 	(* Il faut d'abord ouvrir le graph pour charger
 		une image, sinon ça génère une Exception *)
 	let f = open_in "res/test.bmp" in
@@ -32,6 +36,9 @@ let _ =
 		Image.drawOnCenter
 			(ImageRotation.getRotatedImage img (to_radian (Int.to_float !angle)))
 			100 100;
+		
 		incr angle;
 		sleepf 0.03;
+
+		synchronize ();
 	done;
