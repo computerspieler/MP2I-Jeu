@@ -32,6 +32,7 @@ let _ =
 		if int_of_char ev.key <> 0
 			then Printf.printf "%d\n%!" (int_of_char ev.key);
 		
+		Image.drawOnCenter img 100 100;
 		(* A eviter, l'ideal est de précalculer les images à différents angles *)
 		Image.drawOnCenter
 			(ImageRotation.getRotatedImage img (to_radian (Int.to_float !angle)))
