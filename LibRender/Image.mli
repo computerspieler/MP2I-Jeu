@@ -12,4 +12,4 @@ exception UnsupportedColorPalette
 exception UnsupportedBPP
 
 val drawOnCenter: image -> int -> int -> unit
-val readFile: in_channel -> image
+val createNewColorMatrix: int -> int -> (int -> int -> Graphics.color) -> Graphics.color array array

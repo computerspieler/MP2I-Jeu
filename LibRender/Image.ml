@@ -19,10 +19,9 @@ let drawOnCenter input x y =
 		(x - input.width / 2)
 		(y - input.height / 2)
 
-let readFile (ic:in_channel) =
-	let img, w, h = Bitmap.readFile ic in
-	{
-		image = make_image img;
-		width = w;
-		height = h;
-	}
+let createNewColorMatrix width height f =
+	Array.init height (
+		fun y -> Array.init width (
+			fun x -> f x y
+		)
+	)

@@ -10,19 +10,22 @@ let window_width, window_height =
 let event_mask =
 	[Poll; Key_pressed]
 
-let _ =
+let init() =
 	let window_param = Printf.sprintf " %dx%d" window_width window_height in
 	open_graph  window_param;
 	set_window_title "Jeu";
 	
 	(* On active le double buffering *)
 	display_mode false;
-	remember_mode true;
+	remember_mode true
+
+let _ =
+	init();
 
 	(* Il faut d'abord ouvrir le graph pour charger
 		une image, sinon ça génère une Exception *)
 	let f = open_in "res/test.bmp" in
-	let img = Image.readFile (f) in
+	let img = Bitmap.readFile (f) in
 	close_in f;
 
 	let angle = ref 0 in
@@ -42,4 +45,4 @@ let _ =
 		sleepf 0.03;
 
 		synchronize ();
-	done;
+	done

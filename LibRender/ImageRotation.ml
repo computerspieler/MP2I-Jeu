@@ -1,15 +1,19 @@
 open Graphics
 open Image
 
-let compute_rotated_pixel color_matrix width height x y new_size angle =
-	let dest_c = Int.to_float (new_size / 2) in
+let compute_rotated_pixel color_matrix width height new_size angle x y =
 	let cos_angle, sin_angle =
 		Float.cos angle, Float.sin angle
 		in
+	
+	(* On calcule la position du pixel par
+		rapport au centre de rotation *)
+	let dest_c = Int.to_float (new_size / 2) in
 	let dest_x, dest_y = 
 		Int.to_float x -. dest_c,
 		Int.to_float y -. dest_c
 		in
+	
 	(*
 		Pour mieux comprendre ces formules,
 		allez voir ce site :
@@ -31,15 +35,12 @@ let getRotatedImage input angle =
 			Int.to_float (input.width * input.width + input.height * input.height)
 		))
 	in
-	let new_color_matrix = Array.init new_size (
-		fun y -> Array.init new_size (
-			fun x -> compute_rotated_pixel
-				color_matrix input.width input.height
-				x y
-				new_size
-				(-. angle)
+	let new_color_matrix = Image.createNewColorMatrix new_size new_size
+		(compute_rotated_pixel
+			color_matrix input.width input.height
+			new_size
+			(-. angle)
 		)
-	)
 	in
 	{
 		image = make_image new_color_matrix;

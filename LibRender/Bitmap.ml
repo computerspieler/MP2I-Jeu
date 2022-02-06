@@ -1,9 +1,4 @@
-exception InvalidFile
-exception InvalidFileFormat
-exception InvalidFileVersion
-exception CompressedFile
-exception UnsupportedColorPalette
-exception UnsupportedBPP
+open Image
 
 let get_int buffer offset size =
 	let out = ref 0 in
@@ -58,19 +53,21 @@ let retreiveBitmap ic bmp_start width height bpp =
 	if (input ic buffer 0 len) = 0
 		then raise InvalidFile;
 
-	let bitmap = Array.make_matrix height width 0 in
-
-	for y = 0 to height-1 do
-		for x = 0 to width-1 do
+	let bitmap = Image.createNewColorMatrix width height
+		(fun x y -> 
 			let offset = (y * width + x) * byte_per_pixel in
 			let r = int_of_char (Bytes.get buffer offset) in
 			let g = int_of_char (Bytes.get buffer (offset+1)) in
 			let b = int_of_char (Bytes.get buffer (offset+2)) in
 			
-			bitmap.(height - 1 - y).(x) <- (Graphics.rgb r g b)
-		done
-	done;
-	bitmap, width, height
+			Graphics.rgb r g b
+		) 
+		in
+	{
+		Image.image = Graphics.make_image bitmap;
+		width = width;
+		height = height;
+	}
 
 let readFile (ic:in_channel) = 
 	try
