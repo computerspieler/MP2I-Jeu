@@ -1,5 +1,3 @@
-open Graphics
-
 exception InvalidFile
 exception InvalidFileFormat
 exception InvalidFileVersion
@@ -32,7 +30,7 @@ let retrieveDataFromHeader (ic:in_channel) =
 	start, header_len
 
 let retrieveDataFromDIBHeader (ic:in_channel) len =
-	if len < 40
+	if len <> 40
 		then raise InvalidFile;
 
 	let header = Bytes.create len in
@@ -42,8 +40,6 @@ let retrieveDataFromDIBHeader (ic:in_channel) len =
 	let width  = get_int header 0 4 in
 	let height = get_int header 4 4 in
 	let bpp    = get_int header 10 2 in
-
-	Printf.printf "Head : %d %d %d \n%!" width height bpp;
 
 	if get_int header 12 4 <> 0
 	then raise CompressedFile
@@ -71,11 +67,10 @@ let retreiveBitmap ic bmp_start width height bpp =
 			let g = int_of_char (Bytes.get buffer (offset+1)) in
 			let b = int_of_char (Bytes.get buffer (offset+2)) in
 			
-			bitmap.(height - 1 - y).(x) <- (rgb r g b)
-			done
+			bitmap.(height - 1 - y).(x) <- (Graphics.rgb r g b)
+		done
 	done;
-
-	make_image bitmap
+	bitmap, width, height
 
 let readFile (ic:in_channel) = 
 	try
@@ -90,5 +85,4 @@ let readFile (ic:in_channel) =
 		retreiveBitmap ic bmp_start width height bpp
 	with
 	End_of_file -> raise InvalidFile
-	| e -> raise e
-
+	| e -> raise e	

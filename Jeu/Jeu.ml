@@ -1,4 +1,4 @@
-(* open LibMath *)
+open LibMath
 open Graphics
 open LibRender
 open Unix
@@ -12,19 +12,26 @@ let event_mask =
 
 let _ =
 	let window_param = Printf.sprintf " %dx%d" window_width window_height in
-
 	open_graph  window_param;
+	set_window_title "Jeu";
 	
+	(* Il faut d'abord ouvrir le graph pour charger
+		une image, sinon ça génère une Exception *)
 	let f = open_in "res/test.bmp" in
-	let img = BMP.readFile (f) in
+	let img = Image.readFile (f) in
 	close_in f;
 
-	set_window_title "Jeu";
-	draw_image img 0 0;
+	let angle = ref 0 in
 	while true do
+		clear_graph();
 		let ev = wait_next_event event_mask in
 		if int_of_char ev.key <> 0
 			then Printf.printf "%d\n%!" (int_of_char ev.key);
-
-		sleepf 0.12;
+		
+		(* A eviter, l'ideal est de précalculer les images à différents angles *)
+		Image.drawOnCenter
+			(ImageRotation.getRotatedImage img (to_radian (Int.to_float !angle)))
+			100 100;
+		incr angle;
+		sleepf 0.03;
 	done;
