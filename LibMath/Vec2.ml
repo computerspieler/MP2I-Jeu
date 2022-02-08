@@ -7,7 +7,10 @@ let create i j =
 	{x = i; y = j}
 
 let print v =
-	Printf.printf "(X: %f; Y: %f)" v.x v.y
+	Printf.printf "(X: %f; Y: %f)\n%!" v.x v.y
+
+let inv v =
+	{x = 1. /. v.x; y = 1. /. v.y}
 
 let apply f v1 v2 =
 	{ x = (f v1.x v2.x); y = (f  v1.y v2.y) }
@@ -29,3 +32,12 @@ let normalize v =
 	if len = 0.
 	then { x = 0.; y = 0. }
 	else { x = v.x /. len; y = v.y /. len }
+
+
+let apply_c f v c =
+	{ x = (f v.x c); y = (f v.y c) }
+
+let add_c = apply_c ( +. )
+let sub_c = apply_c ( -. )
+let mul_c = apply_c ( *. )
+let div_c = apply_c ( /. )
