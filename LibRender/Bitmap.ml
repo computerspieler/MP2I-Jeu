@@ -83,3 +83,8 @@ let readFile (ic:in_channel) =
 	with
 	End_of_file -> raise InvalidFile
 	| e -> raise e	
+
+let readFileAndClose (ic:in_channel) =
+	let output = readFile ic in
+	close_in ic;
+	output

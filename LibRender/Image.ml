@@ -13,9 +13,13 @@ exception CompressedFile
 exception UnsupportedColorPalette
 exception UnsupportedBPP
 
-let drawOnCenter input x y =
+let draw input x y =
 	draw_image 
 		input.image
+		x y
+
+let drawOnCenter input x y =
+	draw input
 		(x - input.width / 2)
 		(y - input.height / 2)
 
