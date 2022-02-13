@@ -7,11 +7,6 @@ type image = {
 }
 
 exception InvalidFile
-exception InvalidFileFormat
-exception InvalidFileVersion
-exception CompressedFile
-exception UnsupportedColorPalette
-exception UnsupportedBPP
 
 let draw input x y =
 	draw_image 
@@ -23,7 +18,7 @@ let drawOnCenter input x y =
 		(x - input.width / 2)
 		(y - input.height / 2)
 
-let createNewColorMatrix width height f =
+let createNewMatrix width height f =
 	Array.init height (
 		fun y -> Array.init width (
 			fun x -> f x y

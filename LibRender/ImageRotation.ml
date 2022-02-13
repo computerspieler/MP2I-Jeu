@@ -35,7 +35,7 @@ let getRotatedImage input angle =
 			Int.to_float (input.width * input.width + input.height * input.height)
 		))
 	in
-	let new_color_matrix = Image.createNewColorMatrix new_size new_size
+	let new_color_matrix = Image.createNewMatrix new_size new_size
 		(compute_rotated_pixel
 			color_matrix input.width input.height
 			new_size
