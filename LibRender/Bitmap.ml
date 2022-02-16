@@ -25,6 +25,16 @@ let getIntFromBuffer buffer offset size =
 	done;
 	!out
 
+let getIntFromFile ic offset size =
+	let out = ref 0 in
+	let pow_256 = ref 1 in
+	for i=0 to size-1 do
+		let b = int_of_char (input_char ic) in
+		out := !out + b * !pow_256;
+		pow_256 := !pow_256 * 256;
+	done;
+	!out
+
 let retrieveDataFromHeader (ic:in_channel) =
 	let header = Bytes.create 18 in
 	
@@ -52,20 +62,17 @@ let retreiveRawBitmap (ic : in_channel) (h : dibHeaderInfo) =
 	let rowSize = ((h.width * h.bpp + 31) / 32) * 4 in
 	let len = rowSize * h.height in
 
-	let buffer = Bytes.create len in
-
-	seek_in ic h.bitmap_start;
-	if (input ic buffer 0 len) = 0
-		then raise InvalidFile;
-
-	Image.createNewMatrix h.width h.height
+        Image.createNewMatrix h.width h.height
 	(fun x y -> 
 		let offset = (h.height - y - 1) * rowSize + ((h.bpp * x) / 8) in
-		let data = getIntFromBuffer buffer offset byte_per_pixel in
-
-		(* Que Dieu me pardonne *)
+                seek_in ic (h.bitmap_start + offset);
+		
+                let data = getIntFromFile ic offset byte_per_pixel in
+		
+                (* Que Dieu me pardonne *)
 		let n = 8 - ((x*h.bpp) mod 8) - (min h.bpp 8) in
-		(data / (pow 2 n)) mod (pow 2 h.bpp)
+                let output = (data / (pow 2 n)) mod (pow 2 h.bpp) in
+                output
 	)
 
 let retrieveColorTable (ic : in_channel) (h : dibHeaderInfo) =
