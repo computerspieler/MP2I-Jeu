@@ -1,90 +1,48 @@
 open LibRender
+open Graphics
 
-type tile = {
-	img : Image.image option;
+class map i_carte i_terrain itilesize = object(self)
+	val carte = i_carte
+	val terrain = i_terrain
+	val mutable tile_size = itilesize
 
-	isSolid : bool;
-	isDeadly : bool;
-}
+	method is_in x y = 
+		y >= 0 && y < Array.length carte &&
+		x >= 0 && x < Array.length carte.(y)
 
-let newTile (image_name: string option) isSolid isDeadly =
-	let img =
-		match image_name with
-		| None -> None
-		| Some name -> begin
-			let path = "res/" ^ name ^ ".bmp" in
-			Some (Bitmap.readFileAndClose (open_in path))
-		end
-	in
-	{
-		img = img;
-		isSolid = isSolid;
-		isDeadly = isDeadly;
-	}
+	method is_ground x y =
+		if not (self#is_in x y) then false
+		else (carte.(y).(x) = 1)
 
-let tileSize = 64;;
-let tileList = ref [||];;
+	method tile_size : int = tile_size
 
-let init_tileList () =
-	tileList := [|
-		newTile None			false	false;
-		newTile (Some "test")	true	false;
-		newTile (Some "spike")	true	true;
-	|]
+	method does_row_has_ground y x1 x2 =
+		let output = ref false in
+		for x = x1 to x2 do
+			if self#is_ground x y
+			then output := true;
+		done;
+		!output
 
-type map = {
-	mutable scroll : int;		(* Scrolling horizontal *)
-	
-	height : int;
-	chunck_width : int;	(* Sont en tiles, non en pixels *)
-	width : int;		
-	chunck : int array array;
-}
+	method does_col_has_ground x y1 y2 =
+		let output = ref false in
+		for y = y1 to y2 do
+			if self#is_ground x y
+			then output := true;
+		done;
+		!output
 
-let map_new_col (m : map) x =
-	if x > m.width
-	then Array.make m.height 0
+	method render = 
+		Image.draw terrain 0 0
 
-	else if x = m.width
-	then Array.make m.height 1
-
-	else Array.init m.height (
-		fun y ->
-			if y < 1
-			then 2
-			else 0
-	)
-
-let map_init seed w h cw =
-	Random.init seed;
-	let m = {
-		scroll = 0;
-		height = h;
-
-		width = w;
-		chunck_width = cw;
-		chunck = Array.make_matrix cw h 0;
-	} in
-	for i=0 to m.chunck_width - 1 do
-		m.chunck.(i) <- map_new_col m i
-	done;
-	m
-
-let scroll_chunck (m : map) =
-	m.scroll <- m.scroll + 1;
-	for i=1 to m.chunck_width - 1 do
-		m.chunck.(i-1) <- m.chunck.(i)
-	done;
-	m.chunck.(m.chunck_width - 1) <-
-		map_new_col m (m.chunck_width - 1 + m.scroll)
-
-let draw (m : map) (sx : int) =
-	for a = 0 to m.chunck_width - 1 do
-		for b = 0 to m.height - 1 do
-			match !tileList.(m.chunck.(a).(b)).img with
-			| None -> ()
-			| Some img ->
-				Image.draw img
-					(a * tileSize - sx) (b * tileSize)
+	method debugRender =
+		for y = 0 to Array.length carte - 1 do
+			for x = 0 to Array.length carte.(y) - 1 do
+				set_color black;
+				if self#is_ground x y
+				then fill_rect (x * tile_size) (y * tile_size) tile_size tile_size;
+				set_color red;
+				draw_rect (x * tile_size) (y * tile_size) tile_size tile_size;
+			done;
 		done
-	done;
+end
