@@ -25,10 +25,11 @@ let getIntFromBuffer buffer offset size =
 	done;
 	!out
 
-let getIntFromFile ic offset size =
+let getIntFromFile ic size =
 	let out = ref 0 in
 	let pow_256 = ref 1 in
 	for i=0 to size-1 do
+		ignore(i);
 		let b = int_of_char (input_char ic) in
 		out := !out + b * !pow_256;
 		pow_256 := !pow_256 * 256;
@@ -60,19 +61,18 @@ let rawBitmap_generate (h : dibHeaderInfo) (bitmap:int array array) (colors:int 
 let retreiveRawBitmap (ic : in_channel) (h : dibHeaderInfo) =
 	let byte_per_pixel = (h.bpp + 7) / 8 in
 	let rowSize = ((h.width * h.bpp + 31) / 32) * 4 in
-	let len = rowSize * h.height in
 
-        Image.createNewMatrix h.width h.height
+	Image.createNewMatrix h.width h.height
 	(fun x y -> 
 		let offset = (h.height - y - 1) * rowSize + ((h.bpp * x) / 8) in
-                seek_in ic (h.bitmap_start + offset);
-		
-                let data = getIntFromFile ic offset byte_per_pixel in
-		
-                (* Que Dieu me pardonne *)
+		seek_in ic (h.bitmap_start + offset);
+
+		let data = getIntFromFile ic byte_per_pixel in
+
+		(* Que Dieu me pardonne *)
 		let n = 8 - ((x*h.bpp) mod 8) - (min h.bpp 8) in
-                let output = (data / (pow 2 n)) mod (pow 2 h.bpp) in
-                output
+		let output = (data / (pow 2 n)) mod (pow 2 h.bpp) in
+		output
 	)
 
 let retrieveColorTable (ic : in_channel) (h : dibHeaderInfo) =
