@@ -26,6 +26,18 @@ module Vec2: sig
 	(* Renvoie l de 2 vecteurs *)
 	val div: vec2 -> vec2 -> vec2
 
+
+	(* operations sur 1 élément du vecteur *)
+	val addX: vec2 -> int -> vec2
+	val subX: vec2 -> int -> vec2
+	val mulX: vec2 -> int -> vec2
+	val divX: vec2 -> int -> vec2
+
+	val addY: vec2 -> int -> vec2
+	val subY: vec2 -> int -> vec2
+	val mulY: vec2 -> int -> vec2
+	val divY: vec2 -> int -> vec2
+
 	(* operations entre vecteur et constante *)
 	(* Renvoie la somme d'1 vecteur et d'une constante *)
 	val add_c: vec2 -> int -> vec2

@@ -41,6 +41,16 @@ let mul_c = apply_c ( * )
 let div_c = apply_c ( / )
 let ceil_div_c = apply_c (fun a b -> (a + b - 1) / b)
 
+let addX v c = {x = v.x + c; y = v.y}
+let subX v c = {x = v.x - c; y = v.y}
+let mulX v c = {x = v.x * c; y = v.y}
+let divX v c = {x = v.x / c; y = v.y}
+
+let addY v c = {x = v.x; y = v.y + c}
+let subY v c = {x = v.x; y = v.y - c}
+let mulY v c = {x = v.x; y = v.y * c}
+let divY v c = {x = v.x; y = v.y / c}
+
 exception Done
 let bresenham ps pe f =
 	let d = create
