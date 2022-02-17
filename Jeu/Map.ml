@@ -1,36 +1,23 @@
 open LibRender
+open LibMath
+open LibPhysics
 open Graphics
 
 class map i_carte i_terrain itilesize = object(self)
 	val carte = i_carte
 	val terrain = i_terrain
-	val mutable tile_size = itilesize
-
-	method is_in x y = 
-		y >= 0 && y < Array.length carte &&
-		x >= 0 && x < Array.length carte.(y)
+	val tile_size = itilesize
 
 	method is_ground x y =
-		if not (self#is_in x y) then false
-		else (carte.(y).(x) = 1)
+		(carte.(y).(x) = 1)
 
-	method tile_size : int = tile_size
+	method getPhysicsTileMap : tilemap =
+		{
+			size = Vec2.create (Array.length carte.(0)) (Array.length carte);
+			tile_size = tile_size;
 
-	method does_row_has_ground y x1 x2 =
-		let output = ref false in
-		for x = x1 to x2 do
-			if self#is_ground x y
-			then output := true;
-		done;
-		!output
-
-	method does_col_has_ground x y1 y2 =
-		let output = ref false in
-		for y = y1 to y2 do
-			if self#is_ground x y
-			then output := true;
-		done;
-		!output
+			collideFunction = self#is_ground;
+		}
 
 	method render = 
 		Image.draw terrain 0 0

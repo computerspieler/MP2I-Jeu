@@ -1,0 +1,8 @@
+(library
+ (name LibPhysics)
+ (libraries LibMath))
+(env
+ (dev
+   (flags (:standard -warn-error -A))
+  )
+)

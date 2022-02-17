@@ -5,13 +5,19 @@ open Map
 open Player
 
 let _ =
+	(* On execute open_graph en premier car de nombreuses 
+	   fonctions relié (Bitmap.readFile, ...) ont besoin que cette
+	   instruction ait été executé au préalable. *)
 	open_graph " 1280x640";
+
+	(* On active le double buffering *)
 	display_mode false;
 	remember_mode true;
 
-	let terrain = Bitmap.readFileAndClose (open_in "res/test.bmp") in
 	let player_img = Bitmap.readFileAndClose (open_in "res/spike.bmp") in
 	let joueur = new player player_img 32 384 894 in 
+
+	let terrain = Bitmap.readFileAndClose (open_in "res/test.bmp") in
 	let carte = new map 
 	[|
 	[|0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;1;1;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0|];
@@ -37,11 +43,25 @@ let _ =
 	|]
 	terrain 32 in 
 
+	let previous_time = ref (Unix.gettimeofday()) in
     while true do
     	clear_graph();
-    	carte#debugRender;
-    	joueur#render;
+
+		(*
+		   On calcule le delta time, qui represente le temps
+		   écoulé entre deux mises à jour.
+		*)
+		let current_time = Unix.gettimeofday() in
+		let delta_time = current_time -. !previous_time in
+		Printf.printf "Delta time : %f\n" delta_time;
+		previous_time := current_time;
+
     	joueur#update carte;
-	synchronize();
-	Unix.sleepf 0.06;
+    	
+		carte#debugRender;
+    	joueur#render;
+		
+		synchronize();
+		flush stdout;
+		Unix.sleepf 0.06;
     done
