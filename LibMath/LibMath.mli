@@ -7,13 +7,14 @@ module Vec2: sig
 	(* Operations avec un vecteur *)
 	(* Cree un vecteur *)
 	val create: int -> int -> vec2
+	(* Copie un vecteur *)
+	val copy: vec2 -> vec2
 	(* Affiche le contenu d'un vecteur *)
 	val print: vec2 -> unit
 	(* Calcul la longueur d'un vecteur *)
 	val length: vec2 -> int
-	(* Renvoie le vecteur normalise
-	Renvoie un vecteur nul si la norme du vecteur est nul *)
-	val normalize: vec2 -> vec2
+	(* Calcul la longueur au carré d'un vecteur *)
+	val length_squared: vec2 -> int
 
 	(* operations entre vecteurs *)
 	(* Renvoie la somme de 2 vecteurs *)
@@ -34,9 +35,13 @@ module Vec2: sig
 	val mul_c: vec2 -> int -> vec2
 	(* Renvoie le produit d'1 vecteur et d'une constante *)
 	val div_c: vec2 -> int -> vec2
-
+	val ceil_div_c: vec2 -> int -> vec2
+	
 	(* Renvoie le produit scalaire de 2 vecteurs *)
 	val scalaire: vec2 -> vec2 -> int
+
+	(* Applique l'algorithme de Bresenham *)
+	val bresenham : vec2 -> vec2 -> (vec2 -> 'a option) -> 'a option
 end
 
 val to_radian : float -> float
