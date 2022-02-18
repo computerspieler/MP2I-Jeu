@@ -42,6 +42,7 @@ let _ =
 	[|1;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;1|];
 	|]
 	terrain 32 in 
+	(*COMENTAIRE ICI !*)
 
 	let previous_time = ref (Unix.gettimeofday()) in
     while true do
