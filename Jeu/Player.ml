@@ -31,8 +31,9 @@ class player init_image init_size init_y init_x = object(self)
 			velocity = vel
 		}
 
-	method update (map : tilemap) (delta:float) = 
+	method update (ev : status) (map : tilemap) (delta:float) = 
 		ignore delta;
+                ignore ev;
 		if key_pressed()
 			then begin
 			match read_key() with
