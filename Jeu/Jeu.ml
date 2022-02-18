@@ -1,6 +1,8 @@
 open Graphics
 
+open MainMenu
 open Game
+open Exceptions
 
 let _ =
 	(* On execute open_graph en premier car toutes les 
@@ -12,7 +14,7 @@ let _ =
 	display_mode false;
 	remember_mode true;
 
-	let actualRoom = ref (new gameRoom) in
+	let actualRoom = ref (new mainMenu) in
 	(!actualRoom)#init;
 
 	let previous_time = ref (Unix.gettimeofday()) in
@@ -29,12 +31,18 @@ let _ =
 		let delta_time = current_time -. !previous_time in
 		previous_time := current_time;
 		
-		let ev = wait_next_event [Poll; Mouse_motion; Button_down] in
-		(!actualRoom)#update ev delta_time;
-		(!actualRoom)#render;
-		
-		synchronize();
-		flush stdout;
-		Unix.sleepf 0.05;
-
+		try
+			let ev = wait_next_event [Poll; Mouse_motion; Button_down] in
+			(!actualRoom)#update ev delta_time;
+			(!actualRoom)#render;
+			
+			synchronize();
+			flush stdout;
+			Unix.sleepf 0.05;
+		with
+		| StartGame -> begin
+			actualRoom := new gameRoom;
+			(!actualRoom)#init;
+		end
+		| e -> raise e;
 	done
