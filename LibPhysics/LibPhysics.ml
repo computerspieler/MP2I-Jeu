@@ -13,97 +13,167 @@ type tilemap = {
 	collideFunction : int -> int -> bool;
 }
 
-let inside_map (t:tilemap) (v:Vec2.vec2) =
-	(v.x >= 0 && v.x < t.size.x && v.y >= 0 && v.y < t.size.y)
-
-let collideTileMapY (t : tilemap) (tilePos:Vec2.vec2) width =
-	let output = ref false in
-	let v = Vec2.copy tilePos in
-	for i = 0 to (ceil_div width t.tile_size) do
-		ignore(i);
-		if (inside_map t v) && (t.collideFunction (v.x) (v.y))
-		then output := true;
-		v.x <- v.x + 1;
-	done;
-	!output
-
-let collideTileMapX (t : tilemap) (tilePos:Vec2.vec2) height =
-	let output = ref false in
-	let v = Vec2.copy tilePos in
-	for i = 0 to (ceil_div height t.tile_size) do
-		ignore(i);
-		if (inside_map t v) && (t.collideFunction (v.x) (v.y))
-		then output := true;
-		v.y <- v.y + 1;
-	done;
-	!output
-
-let computeTilemapRectCollision (t : tilemap) (r:rect) =
-	let pixel_to_travel_left = Vec2.create
-		(abs (r.velocity.x))
-		(abs (r.velocity.y))
+let doAABBSweepCollision (d : rect) (s : rect) timeLeft =
+	let xInvEntry, xInvExit =
+		if d.velocity.x > 0
+		then (s.position.x - (d.position.x + d.dimension.x)), ((s.position.x + s.dimension.x) - d.position.x)
+		else ((s.position.x + s.dimension.x) - d.position.x), (s.position.x - (d.position.x + d.dimension.x))
 		in
-	let travel_direction = Vec2.create
-		(if r.velocity.x < 0 then -1 else 1)
-		(if r.velocity.y < 0 then -1 else 1)
+	let yInvEntry, yInvExit =
+		if d.velocity.y > 0
+		then (s.position.y - (d.position.y + d.dimension.y)), ((s.position.y + s.dimension.y) - d.position.y)
+		else ((s.position.y + s.dimension.y) - d.position.y), (s.position.y - (d.position.y + d.dimension.y))
+		in
+
+	let xEntry, xExit =
+		if d.velocity.x = 0
+		then Stdlib.neg_infinity, Stdlib.infinity
+		else (Int.to_float(xInvEntry) /. Int.to_float (d.velocity.x)),
+			 (Int.to_float(xInvExit)  /. Int.to_float (d.velocity.x))
+		in
+	let yEntry, yExit =
+		if d.velocity.y = 0
+		then Stdlib.neg_infinity, Stdlib.infinity
+		else (Int.to_float(yInvEntry) /. Int.to_float (d.velocity.y)),
+			 (Int.to_float(yInvExit)  /. Int.to_float (d.velocity.y))
 		in
 	
-	let next_pos = Vec2.copy r.position in
-	let next_vel = Vec2.copy r.velocity in
+	let entryTime = (Float.max xEntry yEntry) in
+	let exitTime = (Float.min xExit yExit) in
 
-	let collision_test_offset = Vec2.create
-		(if r.velocity.x <= 0 then 0 else r.dimension.x)
-		(if r.velocity.y <= 0 then 0 else r.dimension.y)
+	(* S'il n'y a pas de collisions *)
+	if entryTime > exitTime || (xEntry < 0.0 && yEntry < 0.0) || xEntry > timeLeft || yEntry > timeLeft
+	then
+		timeLeft, Vec2.zero
+	else begin
+		let normalx, normaly =
+			if xEntry > yEntry
+			then
+				if xInvEntry < 0
+				then  1, 0
+				else -1, 0
+			else
+				if yInvEntry < 0
+				then 0, 1
+				else 0, -1
+			in
+		
+		entryTime, (Vec2.create normalx normaly)
+	end
+
+(*
+	getTilePosition calcule la position sur la tilemap d'un
+	point à partir de sa valeur "absolue" (en pixel).
+
+	Et getAbsolutePosition est la réciproque de getTilePosition
+*)
+let getTilePosition (t:tilemap) (v:Vec2.vec2) =
+	(Vec2.div_c v t.tile_size)
+
+let getAbsolutePosition (t:tilemap) (v:Vec2.vec2) =
+	(Vec2.mul_c v t.tile_size)
+
+(* Permet de savoir si une tuile est solide *)
+let tilemapIsSolid (t:tilemap) (v:Vec2.vec2) =
+	(v.x >= 0 && v.x < t.size.x && v.y >= 0 && v.y < t.size.y) &&
+	(t.collideFunction v.x v.y)
+
+let getRaysIntersectionWithTilemap (t : tilemap) (dir:Vec2.vec2) (origin:Vec2.vec2) =
+	Vec2.bresenham
+		(getTilePosition t origin)
+		(getTilePosition t (Vec2.add origin dir))
+		(fun (v : Vec2.vec2) ->
+			if tilemapIsSolid t v
+			then (Some v)
+			else None
+		)
+
+(*
+	getCollidingTiles renvoie la liste des tuiles
+	rentrant en collision avec r.
+	Pour cela, 
+*)
+let getCollidingTiles (t : tilemap) (r:rect) =
+	let start = Vec2.create
+		(r.position.x + (if r.velocity.x <= 0 then 0 else r.dimension.x))
+		(r.position.y + (if r.velocity.y <= 0 then 0 else r.dimension.y))
 		in
 
-	(* NOTE: Cette algorithme est trop naïf. *)
-	for a = 0 to (max (pixel_to_travel_left.x) (pixel_to_travel_left.y)) do
-		ignore(a);
-		(*
-		Cette algorithme décale le rect d'un
-		pixel vers la direction souhaité (velocity) sur l'axe X
-		et verifier si le rect ne rentre pas en collision.
-		Si c'est le cas, alors on ne peut aller plus loin, on s'arrete,
-		sinon on décrémente le nombre de pixel a parcourir (pixel_to_travel_left).
-		*)
-		if pixel_to_travel_left.x > 0
-		then begin
-			next_pos.x <- next_pos.x + travel_direction.x + collision_test_offset.x;
-			let tilePos = Vec2.div_c next_pos t.tile_size in
-			
-			if (collideTileMapX t tilePos r.dimension.y)
+	Vec2.print r.velocity;
+	List.filter_map 
+		(getRaysIntersectionWithTilemap t r.velocity)
+		(
+		List.init
+			((ceil_div r.dimension.x t.tile_size) + 1)
+			(fun i -> Vec2.create (r.position.x + i * t.tile_size) (start.y))
+		@
+		List.init
+			((ceil_div r.dimension.y t.tile_size) + 1)
+			(fun i -> Vec2.create (start.x) (r.position.y + i * t.tile_size))
+		)
+
+let rec computeMovingRectCollision (t : tilemap) (r : rect) (timeLeft : float) =
+	let tiles = getCollidingTiles t r in
+
+	if List.length tiles = 0 || timeLeft <= 0.0
+	then (Vec2.add r.position r.velocity, r.velocity)
+	else begin
+		let s_collisionTime = ref timeLeft in
+		let s_normal = ref Vec2.zero in
+
+		List.iter (fun (v : Vec2.vec2) ->
+			let collisionTime, normal = (doAABBSweepCollision
+				{
+					position = r.position;
+					velocity = r.velocity;
+					dimension = r.dimension;
+				}
+				{
+					position = getAbsolutePosition t v;
+					velocity = Vec2.zero;
+					dimension = Vec2.create t.tile_size t.tile_size;
+				} timeLeft)
+				in
+			if collisionTime < !s_collisionTime
 			then begin
-				(pixel_to_travel_left.x <- 0);
-				next_pos.x <- next_pos.x - travel_direction.x;
-				next_vel.x <- 0;
-			end
-			else
-				pixel_to_travel_left.x <- pixel_to_travel_left.x - 1;
+				s_collisionTime := collisionTime;
+				s_normal := normal;
+			end;
+		) tiles;
 
-			next_pos.x <- next_pos.x - collision_test_offset.x;
-		end;
-
-		(* Idem pour l'autre axe *)
-		if pixel_to_travel_left.y > 0
-		then begin
-			next_pos.y <- next_pos.y + travel_direction.y + collision_test_offset.y;
-			let tilePos = Vec2.div_c next_pos t.tile_size in
+		if !s_collisionTime >= timeLeft
+		then (Vec2.add r.position r.velocity, r.velocity)
+		else
+			let new_pos = Vec2.add
+				r.position
+				(Vec2.create
+					(Int.of_float ((Int.to_float r.velocity.x) *. !s_collisionTime))
+					(Int.of_float ((Int.to_float r.velocity.y) *. !s_collisionTime))
+				)
+				in
 			
-			if (collideTileMapY t tilePos r.dimension.x)
-			then begin
-				(pixel_to_travel_left.y <- 0);
-				next_pos.y <- next_pos.y - travel_direction.y;
-				next_vel.y <- 0;
-			end
-			else
-				pixel_to_travel_left.y <- pixel_to_travel_left.y - 1;
+			let remainingTime = (timeLeft -. !s_collisionTime) in
+			let magnitude = Int.of_float
+				(Int.to_float (Vec2.length r.velocity) *. remainingTime)
+				in
+			let dotprod =
+				sign (r.velocity.x * !s_normal.y + r.velocity.y * !s_normal.x)
+				in
 
-			next_pos.y <- next_pos.y - collision_test_offset.y;
-		end;
-	done;
-	next_pos, next_vel
+			computeMovingRectCollision t
+			{
+				position = new_pos;
+				velocity =
+					Vec2.create
+					(dotprod * !s_normal.y * magnitude)
+					(dotprod * !s_normal.x * magnitude);
+				dimension = r.dimension;
+			}
+			remainingTime
+	end
 
-let isOnGround (t:tilemap) (r:rect) =
-	r.position.y <- r.position.y - 1;
-	let tilePos = Vec2.div_c r.position t.tile_size in
-	(collideTileMapY t tilePos r.dimension.x)
+
+let computeTilemapRectCollision (t : tilemap) (r:rect) =
+	if (r.velocity.x = 0 && r.velocity.y = 0)
+	then (r.position, r.velocity)
+	else (computeMovingRectCollision t r 1.0)
