@@ -1,5 +1,9 @@
 open Image
 
+(* Purement arbitraire *)
+let transparent =
+	Graphics.rgb 255 0 127;
+
 type dibHeaderInfo = {
 	width : int;
 	height : int;
@@ -52,9 +56,14 @@ let retrieveDataFromHeader (ic:in_channel) =
 
 let rawBitmap_generate (h : dibHeaderInfo) (bitmap:int array array) (colors:int array) =
 	let computePixel x y =
-		match colors with
-		| [||] -> bitmap.(y).(x)
-		| _ -> colors.(bitmap.(y).(x))
+		let output =
+			match colors with
+			| [||] -> bitmap.(y).(x)
+			| _ -> colors.(bitmap.(y).(x))
+			in
+		if output = transparent
+		then Graphics.transp
+		else output
 	in
 	Image.createNewMatrix h.width h.height computePixel
 
@@ -72,6 +81,7 @@ let retreiveRawBitmap (ic : in_channel) (h : dibHeaderInfo) =
 		(* Que Dieu me pardonne *)
 		let n = 8 - ((x*h.bpp) mod 8) - (min h.bpp 8) in
 		let output = (data / (pow 2 n)) mod (pow 2 h.bpp) in
+
 		output
 	)
 
@@ -110,8 +120,10 @@ let retrieveDataFromDIBHeader (ic:in_channel) len bmp_start =
 	assert((input ic header 0 len) = len);
 
 	let compression = getIntFromBuffer header 12 4 in
+
+	(* Formats de compression non supporté *)
 	let algo_decompression = match compression with
-		| _ -> retreiveRawBitmap
+	| _ -> retreiveRawBitmap
 	in
 	let bitfields_len = match compression with
 		| 3 -> 12
