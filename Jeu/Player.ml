@@ -14,7 +14,6 @@ class player init_image init_size init_y init_x = object(self)
 	val mutable size : Vec2.vec2 = {x = init_size; y = init_size}
 	val mutable pos : Vec2.vec2 = {x = init_x; y = init_y}
 	val mutable vel : Vec2.vec2 = {x = 0; y = 0}
-	val mutable is_on_ground = false 
 
 	method gravity =
 		vel.y <- vel.y - 1;
@@ -34,19 +33,15 @@ class player init_image init_size init_y init_x = object(self)
 
 	method update (map : tilemap) (delta:float) = 
 		ignore delta;
-
-		let ev = wait_next_event [Poll; Mouse_motion] in
-		if button_down()
-		then begin
-			vel.x <- ev.mouse_x - pos.x;
-			vel.y <- ev.mouse_y - pos.y;
-		end
-		else if key_pressed()
-		then begin
-			ignore (read_key());
-			pos.x <- ev.mouse_x;
-			pos.y <- ev.mouse_y;
+		if key_pressed()
+			then begin
+			match read_key() with
+			| 'z' -> if isOnGround map self#getPhysicsRect then vel.y <- 20;
+			| 'q' -> vel.x <- vel.x - 2;
+			| 'd' -> vel.x <- vel.x + 2;
+			| _ -> ();
 		end;
+
 
 		self#gravity;
 		self#cap_speed;
