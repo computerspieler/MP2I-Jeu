@@ -29,13 +29,13 @@ let doAABBSweepCollision (d : rect) (s : rect) timeLeft =
 		if d.velocity.x = 0
 		then Stdlib.neg_infinity, Stdlib.infinity
 		else (Int.to_float(xInvEntry) /. Int.to_float (d.velocity.x)),
-			 (Int.to_float(xInvExit)  /. Int.to_float (d.velocity.x))
+			(Int.to_float(xInvExit)  /. Int.to_float (d.velocity.x))
 		in
 	let yEntry, yExit =
 		if d.velocity.y = 0
 		then Stdlib.neg_infinity, Stdlib.infinity
 		else (Int.to_float(yInvEntry) /. Int.to_float (d.velocity.y)),
-			 (Int.to_float(yInvExit)  /. Int.to_float (d.velocity.y))
+			(Int.to_float(yInvExit)  /. Int.to_float (d.velocity.y))
 		in
 	
 	let entryTime = (Float.max xEntry yEntry) in
@@ -90,26 +90,38 @@ let getRaysIntersectionWithTilemap (t : tilemap) (dir:Vec2.vec2) (origin:Vec2.ve
 
 (*
 	getCollidingTiles renvoie la liste des tuiles
-	rentrant en collision avec r.
-	Pour cela, 
+	rentrant potentiellement en collision avec r.
+	Pour cela, on lance des rayons a partir des tuiles
+	autour de r, dans la direction de la vitesse de r.
 *)
 let getCollidingTiles (t : tilemap) (r:rect) =
 	let start = Vec2.create
-		(r.position.x + (if r.velocity.x <= 0 then 0 else r.dimension.x))
-		(r.position.y + (if r.velocity.y <= 0 then 0 else r.dimension.y))
+		(r.position.x - (if r.velocity.x < 0 then 1 else 0))
+		(r.position.y - (if r.velocity.y < 0 then 1 else 0))
 		in
 
-	Vec2.print r.velocity;
 	List.filter_map 
 		(getRaysIntersectionWithTilemap t r.velocity)
 		(
+		(* Les tuiles du dessus *)
 		List.init
 			((ceil_div r.dimension.x t.tile_size) + 1)
-			(fun i -> Vec2.create (r.position.x + i * t.tile_size) (start.y))
+			(fun i -> Vec2.create (start.x + i * t.tile_size) start.y)
 		@
+		(* Les tuiles du dessous *)
+		List.init
+			((ceil_div r.dimension.x t.tile_size) + 1)
+			(fun i -> Vec2.create (start.x + i * t.tile_size) (start.y + r.dimension.y))
+		@
+		(* Les tuiles a gauche*)
 		List.init
 			((ceil_div r.dimension.y t.tile_size) + 1)
-			(fun i -> Vec2.create (start.x) (r.position.y + i * t.tile_size))
+			(fun i -> Vec2.create start.x (start.y + i * t.tile_size))
+		@
+		(* Les tuiles a droite*)
+		List.init
+			((ceil_div r.dimension.y t.tile_size) + 1)
+			(fun i -> Vec2.create (start.x + r.dimension.x) (start.y + i * t.tile_size))
 		)
 
 let rec computeMovingRectCollision (t : tilemap) (r : rect) (timeLeft : float) =
@@ -180,10 +192,10 @@ let computeTilemapRectCollision (t : tilemap) (r:rect) =
 
 
 let isOnGround (t : tilemap) (r : rect) =
-    let output = ref false in
-    let pos_underneath = getTilePosition t (Vec2.subY r.position 1) in
-    for i = 0 to (ceil_div r.dimension.x t.tile_size) do
-        if tilemapIsSolid t (Vec2.addX pos_underneath i)
-        then output := true;
-    done;
-    !output
+	let output = ref false in
+	let pos_underneath = getTilePosition t (Vec2.subY r.position 1) in
+	for i = 0 to (ceil_div r.dimension.x t.tile_size) do
+		if tilemapIsSolid t (Vec2.addX pos_underneath i)
+		then output := true;
+	done;
+	!output
