@@ -13,3 +13,8 @@ let clamp i min max =
 	     if i < min then min
 	else if i > max then max
 	else i
+
+let sign i =
+	     if i > 0 then  1
+	else if i < 0 then -1
+	else 0

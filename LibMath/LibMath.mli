@@ -4,6 +4,8 @@ module Vec2: sig
 		mutable y: int;
 	}
 
+	val zero : vec2
+
 	(* Operations avec un vecteur *)
 	(* Cree un vecteur *)
 	val create: int -> int -> vec2
@@ -59,3 +61,4 @@ end
 val to_radian : float -> float
 val ceil_div : int -> int -> int
 val clamp : int -> int -> int -> int
+val sign : int -> int

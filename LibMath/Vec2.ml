@@ -3,6 +3,9 @@ type vec2 = {
 	mutable y: int;
 }
 
+
+let zero = {x = 0; y = 0}
+
 let create i j =
 	{x = i; y = j}
 
@@ -54,7 +57,7 @@ let divY v c = {x = v.x; y = v.y / c}
 exception Done
 let bresenham ps pe f =
 	let d = create
-		(abs pe.x - ps.x)
+		( abs(pe.x - ps.x))
 		(-abs(pe.y - ps.y))
 		in
 
