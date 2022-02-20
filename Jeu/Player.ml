@@ -21,8 +21,8 @@ class player init_image init_size init_y init_x = object(self)
 	method cap_speed =
 		()
 
-	method render = 
-		Image.draw image 640 pos.y
+	method render (camx:int) = 
+		Image.draw image (pos.x - camx + 640) pos.y
 
 	method getPhysicsRect : rect =
 		{

@@ -71,7 +71,7 @@ let _ =
 		previous_time := current_time;
 
 		carte#render !camx;
-		joueur#render;
+		joueur#render !camx;
 		joueur#update carte#getPhysicsTileMap delta_time !vit;
 		camx := !camx + !vit;
     		

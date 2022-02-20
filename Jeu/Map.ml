@@ -1,7 +1,5 @@
 open LibRender
-open LibMath
 open LibPhysics
-
 
 class map i_terrain itilesize = object(self)
 	val xsize = 40
