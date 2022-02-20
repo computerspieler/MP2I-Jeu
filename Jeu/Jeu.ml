@@ -1,6 +1,7 @@
 open Graphics
 open LibRender
 
+open Menu
 open Map
 open Player
 
@@ -13,6 +14,9 @@ let _ =
 	(* On active le double buffering *)
 	display_mode false;
 	remember_mode true;
+
+	(* C'est temporaire, juste d'histoire de l'avoir *)
+	menu_principal ();
 
 	let player_img = Bitmap.readFileAndClose (open_in "res/spike.bmp") in
 	let joueur = new player player_img 32 400 640 in 
