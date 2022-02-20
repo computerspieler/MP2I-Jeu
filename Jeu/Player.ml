@@ -23,7 +23,7 @@ class player init_image init_size init_y init_x = object(self)
 		()
 
 	method render = 
-		Image.draw image pos.x pos.y
+		Image.draw image 640 pos.y
 
 	method getPhysicsRect : rect =
 		{
@@ -32,21 +32,16 @@ class player init_image init_size init_y init_x = object(self)
 			velocity = vel
 		}
 
-	method update (map : tilemap) (delta:float) = 
+	method update (map : tilemap) (delta:float) (speed:int) = 
 		ignore delta;
 
-		let ev = wait_next_event [Poll; Mouse_motion] in
-		if button_down()
-		then begin
-			vel.x <- ev.mouse_x - pos.x;
-			vel.y <- ev.mouse_y - pos.y;
-		end
-		else if key_pressed()
-		then begin
-			ignore (read_key());
-			pos.x <- ev.mouse_x;
-			pos.y <- ev.mouse_y;
+		if key_pressed()
+			then begin
+			match read_key() with
+			| 'z' -> if isOnGround map self#getPhysicsRect then vel.y <- 20;
+			| _ -> ();
 		end;
+		vel.x <- speed;
 
 		self#gravity;
 		self#cap_speed;

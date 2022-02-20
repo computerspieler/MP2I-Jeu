@@ -177,3 +177,12 @@ let computeTilemapRectCollision (t : tilemap) (r:rect) =
 	if (r.velocity.x = 0 && r.velocity.y = 0)
 	then (r.position, r.velocity)
 	else (computeMovingRectCollision t r 1.0)
+
+let isOnGround (t : tilemap) (r : rect) =
+    let output = ref false in
+    let pos_underneath = getTilePosition t (Vec2.subY r.position 1) in
+    for i = 0 to (ceil_div r.dimension.x t.tile_size) do
+        if tilemapIsSolid t (Vec2.addX pos_underneath i)
+        then output := true;
+    done;
+    !output

@@ -15,3 +15,5 @@ type tilemap = {
 
 val computeTilemapRectCollision: tilemap -> rect -> (Vec2.vec2 * Vec2.vec2)
 (*val isOnGround: tilemap -> rect -> bool*)
+
+val isOnGround: tilemap -> rect -> bool
