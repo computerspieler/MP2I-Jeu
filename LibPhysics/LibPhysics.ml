@@ -7,7 +7,6 @@ type rect = {
 }
 
 type tilemap = {
-	size : Vec2.vec2;
 	tile_size : int;
 
 	collideFunction : int -> int -> bool;
@@ -75,7 +74,6 @@ let getAbsolutePosition (t:tilemap) (v:Vec2.vec2) =
 
 (* Permet de savoir si une tuile est solide *)
 let tilemapIsSolid (t:tilemap) (v:Vec2.vec2) =
-	(v.x >= 0 && v.x < t.size.x && v.y >= 0 && v.y < t.size.y) &&
 	(t.collideFunction v.x v.y)
 
 let getRaysIntersectionWithTilemap (t : tilemap) (dir:Vec2.vec2) (origin:Vec2.vec2) =

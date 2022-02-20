@@ -7,7 +7,6 @@ type rect = {
 }
 
 type tilemap = {
-	size : Vec2.vec2;
 	tile_size : int;
 
 	collideFunction : int -> int -> bool;
