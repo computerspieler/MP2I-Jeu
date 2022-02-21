@@ -30,6 +30,10 @@ let compute_rotated_pixel color_matrix width height new_size angle x y =
 
 let getRotatedImage input angle =
 	let color_matrix = dump_image input.image in
+        (*TODO: Faire en sorte que l'on donne une meilleur
+         taille a l'image, car la, on a une taille unique
+         et maximale
+         *)
 	let new_size =
 		Float.to_int(Float.sqrt(
 			Int.to_float (input.width * input.width + input.height * input.height)

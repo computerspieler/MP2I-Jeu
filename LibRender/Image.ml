@@ -13,11 +13,6 @@ let draw input x y =
 		input.image
 		x y
 
-let drawOnCenter input x y =
-	draw input
-		(x - input.width / 2)
-		(y - input.height / 2)
-
 let createNewMatrix width height f =
 	Array.init height (
 		fun y -> Array.init width (

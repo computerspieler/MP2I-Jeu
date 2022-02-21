@@ -7,5 +7,4 @@ type image = {
 exception InvalidFile
 
 val draw: image -> int -> int -> unit
-val drawOnCenter: image -> int -> int -> unit
 val createNewMatrix: int -> int -> (int -> int -> Graphics.color) -> Graphics.color array array

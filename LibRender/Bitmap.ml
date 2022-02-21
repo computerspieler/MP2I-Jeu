@@ -14,7 +14,6 @@ type dibHeaderInfo = {
 	bitfields_len : int;
 }
 
-(* TODO: Faire un meilleur truc *)
 let rec pow a n =
 	if n <= 0 then 1
 	else a * (pow a (n-1))
@@ -54,16 +53,17 @@ let retrieveDataFromHeader (ic:in_channel) =
 
 	start, header_len
 
-let rawBitmap_generate (h : dibHeaderInfo) (bitmap:int array array) (colors:int array) =
+(* Genere un bitmap a partir d'un bitmap et d'une table de couleur *)
+let generate (h : dibHeaderInfo) (bitmap:int array array) (colors:int array) =
 	let computePixel x y =
-		let output =
+		let raw_output =
 			match colors with
 			| [||] -> bitmap.(y).(x)
 			| _ -> colors.(bitmap.(y).(x))
 			in
-		if output = transparent
+		if raw_output = transparent
 		then Graphics.transp
-		else output
+		else raw_output
 	in
 	Image.createNewMatrix h.width h.height computePixel
 
@@ -121,10 +121,13 @@ let retrieveDataFromDIBHeader (ic:in_channel) len bmp_start =
 
 	let compression = getIntFromBuffer header 12 4 in
 
-	(* Formats de compression non supporté *)
 	let algo_decompression = match compression with
-	| _ -> retreiveRawBitmap
+	| 0 -> retreiveRawBitmap
+        | 3 -> retreiveRawBitmap
+        | 6 -> retreiveRawBitmap
+        | _ -> failwith "Format non supporte"
 	in
+
 	let bitfields_len = match compression with
 		| 3 -> 12
 		| 6 -> 16
@@ -150,12 +153,12 @@ let readFile (ic:in_channel) =
 			retrieveDataFromDIBHeader ic header_len bmp_start in
 
 		let bitmap = algo_decompression ic header in	
-		let colorTables =
+		let colorTable =
 			if header.bpp <= 8 || header.colorPaletteCount <> 0
 			then retrieveColorTable ic header
 			else [||]
 		in
-		let output = rawBitmap_generate (header) (bitmap) (colorTables) in
+		let output = generate (header) (bitmap) (colorTable) in
 		{
 			Image.image = Graphics.make_image output;
 			width = header.width;

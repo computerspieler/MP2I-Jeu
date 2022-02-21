@@ -77,7 +77,8 @@ let tilemapIsSolid (t:tilemap) (v:Vec2.vec2) =
 	(t.collideFunction v.x v.y)
 
 let getRaysIntersectionWithTilemap (t : tilemap) (dir:Vec2.vec2) (origin:Vec2.vec2) =
-	Vec2.bresenham
+        (* TODO: Utiliser un algorithme plus adapte *)
+        Vec2.bresenham
 		(getTilePosition t origin)
 		(getTilePosition t (Vec2.add origin dir))
 		(fun (v : Vec2.vec2) ->
@@ -191,7 +192,7 @@ let computeTilemapRectCollision (t : tilemap) (r:rect) =
 let isOnGround (t : tilemap) (r : rect) =
 	let output = ref false in
 	let pos_underneath = getTilePosition t (Vec2.subY r.position 1) in
-	for i = 0 to (ceil_div r.dimension.x t.tile_size) do
+	for i = 0 to (r.dimension.x / t.tile_size) do
 		if tilemapIsSolid t (Vec2.addX pos_underneath i)
 		then output := true;
 	done;
